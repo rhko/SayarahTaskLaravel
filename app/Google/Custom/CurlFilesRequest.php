@@ -3,13 +3,14 @@
 namespace App\Google\Custom;
 
 use App\Google\Contracts\GoogleFileAdapter;
+use App\Google\Traits\CurlHelperTrait;
 use App\Google\Traits\FormatFieldsTrait;
 use App\Google\Traits\JsonToModel;
 use Illuminate\Support\Collection;
 
 class CurlFilesRequest implements GoogleFileAdapter
 {
-    use FormatFieldsTrait, JsonToModel;
+    use FormatFieldsTrait, JsonToModel, CurlHelperTrait;
 
     private \Google_Client $client;
 
@@ -41,12 +42,7 @@ class CurlFilesRequest implements GoogleFileAdapter
             'Accept: application/json',
         ];
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-        curl_close($ch);
+        $response = $this->makeRequest($url, $headers);
         $files = json_decode($response, true);
         $formated_files = $this->formatFields($files['items']);
         //json as model
