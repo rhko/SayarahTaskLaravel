@@ -11,18 +11,23 @@ class FunctionFilesRequest implements GoogleFileAdapter
 {
     use FormatFieldsTrait, JsonToModel;
 
+    private \Google_Client $client;
     private \Google_Service_Drive $driveService;
 
     /**
-     * @param \Google_Service_Drive $driveService Google Service Drive
+     * @param \Google_Client $client Google Client
     */
-    function __construct($driveService)
+    function __construct(\Google_Client $client)
     {
-        $this->driveService = $driveService;
+        $this->client = $client;
+        $this->driveService = new \Google_Service_Drive($this->client);
     }
 
+    /**
+     * @return Illuminate\Support\Collection collection of files models
+    */
     function getFiles() {
-        $files = $this->retrieveAllFiles($this->driveService);
+        $files = $this->retrieveAllFiles();
         $filesinfo = [];
         foreach($files as $file) {
             $owners = [];
@@ -47,17 +52,17 @@ class FunctionFilesRequest implements GoogleFileAdapter
         return $this->convert($formated_files);
     }
 
-    // function retrievePermissions($service, $fileId) {
-    //     try {
-    //       $permissions = $service->permissions->listPermissions($fileId);
-    //       return $permissions;
-    //     } catch (\Exception $e) {
-    //       print "An error occurred: " . $e->getMessage();
-    //     }
-    //     return NULL;
-    // }
+    function getFilePermissions($fileId) {
+        // try {
+        //   $permissions = $this->driveService->permissions->listPermissions($fileId);
+        //   return $permissions;
+        // } catch (\Exception $e) {
+        //   print "An error occurred: " . $e->getMessage();
+        // }
+        // return NULL;
+    }
 
-    function retrieveAllFiles($service) {
+    function retrieveAllFiles() {
         $result = array();
         $pageToken = NULL;
 
@@ -71,7 +76,7 @@ class FunctionFilesRequest implements GoogleFileAdapter
 
                 $parameters['pageSize'] = 20;
                 $parameters['fields'] = 'files(id, name, size, modifiedTime, thumbnailLink, webContentLink, webViewLink, owners),nextPageToken';
-                $files = $service->files->listFiles($parameters);
+                $files = $this->driveService->files->listFiles($parameters);
                 $result = array_merge($result, $files->getFiles());
                 $pageToken = $files->getNextPageToken();
             } catch (\Exception $e) {

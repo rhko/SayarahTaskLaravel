@@ -43,8 +43,8 @@ class DriveContainer
         try {
             $fileContent = file_get_contents(__DIR__ . '/../../' . $configFile);
         } catch(Exception $e) {
-            print_r($e->getMessage());
-            exit;
+            echo $e->getMessage();
+            die;
         }
         $config = json_decode($fileContent, true);
         $this->callbackUrl = $config['web']['redirect_uris'][0];
@@ -57,7 +57,7 @@ class DriveContainer
         // Using "consent" ensures that your application always receives a refresh token.
         // If you are not using offline access, you can omit this.
         // $this->client->setApprovalPrompt("consent");
-        $this->client->setIncludeGrantedScopes(true);   // incremental auth
+        $this->client->setIncludeGrantedScopes(true);
     }
 
     /**

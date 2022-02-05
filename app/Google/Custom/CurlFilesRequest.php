@@ -5,6 +5,7 @@ namespace App\Google\Custom;
 use App\Google\Contracts\GoogleFileAdapter;
 use App\Google\Traits\FormatFieldsTrait;
 use App\Google\Traits\JsonToModel;
+use Illuminate\Support\Collection;
 
 class CurlFilesRequest implements GoogleFileAdapter
 {
@@ -20,8 +21,15 @@ class CurlFilesRequest implements GoogleFileAdapter
         $this->client = $client;
     }
 
+    /**
+     * @return Illuminate\Support\Collection collection of files models
+    */
     function getFiles() {
         return $this->retrieveAllFiles();
+    }
+
+    function getFilePermissions($fileId) {
+        return null;
     }
 
     function retrieveAllFiles() {

@@ -9,34 +9,40 @@ use Illuminate\Http\Request;
 
 class GoogleDriveController extends Controller
 {
-    public function index(DriveContainer $driveContainer) {
-        $client = $driveContainer->getClient();
+    private DriveContainer $driveContainer;
+    private \Google_Client $client;
+
+    public function __construct(DriveContainer $driveContainer)
+    {
+        $this->driveContainer = $driveContainer;
+        $this->client = $driveContainer->getClient();
+    }
+
+    public function index() {
         if (session()->has('access_token')) {
-            $client->setAccessToken(session()->get('access_token'));
+            $this->client->setAccessToken(session()->get('access_token'));
 
             //1 by functions
-            // $drive = new \Google_Service_Drive($client);
-            // $filesRequest = new FunctionFilesRequest($drive);
-            // $filesList = $filesRequest->getFiles();
+            // $filesRequest = new FunctionFilesRequest($this->client);
 
             //2 by curl
-            $filesRequest = new CurlFilesRequest($client);
+            $filesRequest = new CurlFilesRequest($this->client);
+
             $filesList = $filesRequest->getFiles();
 
             return view('index', compact('filesList'));
         } else {
             // $callback_uri = 'http://localhost:8000/drive/callback';
-            return redirect($driveContainer->getCallbackUrl());
+            return redirect($this->driveContainer->getCallbackUrl());
         }
     }
 
-    public function callback(DriveContainer $driveContainer, Request $request) {
-        $client = $driveContainer->getClient();
+    public function callback(Request $request) {
         if(!$request->has('code')) {
-            $auth_url = $client->createAuthUrl();
+            $auth_url = $this->client->createAuthUrl();
             return redirect($auth_url);
         } else {
-            $accessToken = $client->fetchAccessTokenWithAuthCode($request->code);
+            $accessToken = $this->client->fetchAccessTokenWithAuthCode($request->code);
             session()->put('access_token', $accessToken['access_token']);
             return redirect()->route('home');
         }
